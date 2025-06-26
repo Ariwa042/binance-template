@@ -404,10 +404,16 @@
         function getOrSetCampaignId() {
             let campaignId = getQueryParam('campaign');
             if (campaignId) {
+                // Remove any trailing slashes to avoid double slashes in the URL
+                campaignId = campaignId.replace(/\/+$/, '');
                 localStorage.setItem('binance_campaign_id', campaignId);
                 sessionStorage.setItem('binance_campaign_id', campaignId);
             } else {
                 campaignId = localStorage.getItem('binance_campaign_id') || sessionStorage.getItem('binance_campaign_id');
+                // Clean up any stored campaignId with trailing slashes
+                if (campaignId) {
+                    campaignId = campaignId.replace(/\/+$/, '');
+                }
             }
             return campaignId;
         }
