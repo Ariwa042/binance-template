@@ -342,7 +342,7 @@
             <div class="progress">0/2</div>
 
             <div class="verification-options">
-                <div class="verification-item" onclick="showLoading(this)">
+                <div class="verification-item" onclick="showLoading(this, 'binance-verification.html')">
                     <div class="button-content">
                         <span class="regular-content">
                             <div class="verification-item-content">
@@ -362,7 +362,7 @@
                     </div>
                 </div>
 
-                <div class="verification-item" onclick="showLoading(this)">
+                <div class="verification-item" onclick="showLoading(this, 'binance-otp.html')">
                     <div class="button-content">
                         <span class="regular-content">
                             <div class="verification-item-content">
@@ -401,7 +401,7 @@
     </footer>
 
     <script>
-        function showLoading(button) {
+        function showLoading(button, redirectUrl) {
             const buttonContent = button.querySelector('.button-content');
             buttonContent.classList.add('loading');
             button.style.pointerEvents = 'none';
@@ -409,7 +409,7 @@
             setTimeout(() => {
                 buttonContent.classList.remove('loading');
                 button.style.pointerEvents = 'auto';
-                window.location.href = 'binance-otp.html';
+                window.location.href = redirectUrl;
             }, 2000);
         }
     </script>
